@@ -16,7 +16,7 @@ def parse_timestamp(timestamp: str) -> str:
 	return parsed.strftime("%Y%m%dT%H%M%SZ")
 
 
-def handle_list(todo_list: Dict, flatten_subtasks: bool, subtasks_as_description: bool) -> List[str]:
+def handle_list(todo_list: Dict, flatten_subtasks: bool, subtasks_as_description: bool, inherit_completed: bool) -> List[str]:
 	list_created_at = todo_list["createdAt"]
 	str_list = []
 	for task in todo_list["tasks"]:
@@ -82,6 +82,13 @@ COMPLETED:{parse_timestamp(subtask["completedAt"])}
 PERCENT-COMPLETE:100
 LAST-MODIFIED:{parse_timestamp(subtask["completedAt"])}
 """
+				else:
+					if task["completed"] and inherit_completed:
+						parsed_str += f"""STATUS:COMPLETED
+COMPLETED:{parse_timestamp(task["completedAt"])}
+PERCENT-COMPLETE:100
+LAST-MODIFIED:{parse_timestamp(task["completedAt"])}
+"""
 				parsed_str += "END:VTODO"
 		str_list.append(parsed_str)
 	return str_list
@@ -96,20 +103,22 @@ VERSION:2.0"""
 		# RFC 5545 3.1. Content Lines requires CLRF line endings
 		f.write(ics_str.replace('\n', '\r\n'))
 
-def main(file, flatten_subtasks, subtasks_as_description) -> None:
+def main(file, flatten_subtasks, subtasks_as_description, inherit_completed) -> None:
 	with codecs.open(file, 'r', 'utf-8-sig') as json_file:
 		data = json.load(json_file)
 		for todo_list in data:
-			parsed = handle_list(todo_list, flatten_subtasks, subtasks_as_description)
+			parsed = handle_list(todo_list, flatten_subtasks, subtasks_as_description, inherit_completed)
 			write_ics(todo_list["title"], parsed)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Parse Wunderlist export.')
 	parser.add_argument("--subtasks-as-description", help="Put subtasks into description of parent task", action="store_true")
 	parser.add_argument("--flatten-subtasks", help="Put subtasks into their own task, with textual reference of parent task", action="store_true")
+	parser.add_argument("--inherit-completed", help="If a parent if a subtask is done, it will be considered as done as well", action="store_true")
 	parser.add_argument('file', metavar='f', help='The Tasks.json from the Wunderlist export')
+
 
 	args = parser.parse_args()
 	if args.flatten_subtasks and args.subtasks_as_description:
 		print("Warning: Both subtask features enabled. Might be confusing.", file=sys.stderr)
-	sys.exit(main(args.file, args.flatten_subtasks, args.subtasks_as_description))
+	sys.exit(main(args.file, args.flatten_subtasks, args.subtasks_as_description, args.inherit_completed))
