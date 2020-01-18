@@ -34,17 +34,26 @@ $ ./main.py --flatten-subtasks --subtasks-as-description --inherit-completed Tas
 
 It is recommended to call the tool with all three features regarding subtasks enabled.
 
-### Subtaks
+## Subtaks
 The Icalendar standard does not support subtasks, but both Wunderlist and Nextcloud do. There are three switches regarding subtasks in this tool:
 
 * Flatten subtasks
+
 For each subtask, an additional task will be created with a title of "PARENT TITLE - SUBTASK TITLE"
 
 * Subtasks as Description
+
 Each task which has subtasks will contain a list of its subtasks in its description.
 
 * Inherit Completed
+
 This switch only makes sense in combination with "Flatten subtasks". If enabled, a completed parent task will mark all its subtasks as completed as well.
+
+If you enable all three switches, you can then quite easily manually restore the associations of tasks and their subtasks by sorting the task list alphabetically.
+
+## Dependencies
+
+* Python3
 
 ## Acknowledgements
 
