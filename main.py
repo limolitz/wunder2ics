@@ -72,7 +72,7 @@ LAST-MODIFIED:{parse_timestamp(task["completedAt"])}
 BEGIN:VTODO
 DTSTAMP:{parse_timestamp(subtask["createdAt"])}
 SEQUENCE:0
-SUMMARY: {subtask_title}
+SUMMARY:{subtask_title}
 CREATED:{parse_timestamp(subtask["createdAt"])}
 UID:{subtask_id}
 """
