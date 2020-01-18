@@ -34,6 +34,19 @@ $ ./main.py --flatten-subtasks --subtasks-as-description --inherit-completed Tas
 
 It is recommended to call the tool with all three features regarding subtasks enabled.
 
+All files will be put in the output folder.
+
+### 4. Import to Nextcloud
+
+You need both the Calendar app as well as the Tasks app in Nextcloud.
+1. Go to the Calendar
+2. Create a calendar for each list you want to import
+3. In the Calendar app, click on "Settings & import" in the bottom left, and then on "Import calendar"
+4. Select the file and choose the appropriate calendar in the downdown
+5. Wait for the import to finish, then you can go to the Tasks app to see all your tasks
+6. (Optional) Fix the subtask relations
+7. Profit!
+
 ## Subtaks
 The Icalendar standard does not support subtasks, but both Wunderlist and Nextcloud do. There are three switches regarding subtasks in this tool:
 
