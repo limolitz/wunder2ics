@@ -62,6 +62,27 @@ LAST-MODIFIED:{parse_timestamp(task["completedAt"])}
 			parsed_str += f"DUE:{parse_timestamp(task['dueDate'])}\n"
 
 		parsed_str += "END:VTODO"
+
+		if flatten_subtasks and len(task["subtasks"]) > 0:
+			# add all subtasks as their own tasks
+			for idx, subtask in enumerate(task["subtasks"]):
+				subtask_id = f"{task['id']}-{idx}"
+				subtask_title = f"{task['title']} - {subtask['title']}"
+				parsed_str += f"""
+BEGIN:VTODO
+DTSTAMP:{parse_timestamp(subtask["createdAt"])}
+SEQUENCE:0
+SUMMARY: {subtask_title}
+CREATED:{parse_timestamp(subtask["createdAt"])}
+UID:{subtask_id}
+"""
+				if subtask["completed"]:
+					parsed_str += f"""STATUS:COMPLETED
+COMPLETED:{parse_timestamp(subtask["completedAt"])}
+PERCENT-COMPLETE:100
+LAST-MODIFIED:{parse_timestamp(subtask["completedAt"])}
+"""
+				parsed_str += "END:VTODO"
 		str_list.append(parsed_str)
 	return str_list
 
