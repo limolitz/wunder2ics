@@ -119,6 +119,6 @@ if __name__ == '__main__':
 
 
 	args = parser.parse_args()
-	if args.flatten_subtasks and args.subtasks_as_description:
-		print("Warning: Both subtask features enabled. Might be confusing.", file=sys.stderr)
+	if args.inherit_completed and not args.flatten_subtasks:
+		print("Warning: --inherit-completed is ignored without enabling --flatten-subtasks.", file=sys.stderr)
 	sys.exit(main(args.file, args.flatten_subtasks, args.subtasks_as_description, args.inherit_completed))
