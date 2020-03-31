@@ -16,26 +16,31 @@ def parse_timestamp(timestamp: str) -> str:
 	return parsed.strftime("%Y%m%dT%H%M%SZ")
 
 
-def handle_list(todo_list: Dict, flatten_subtasks: bool, subtasks_as_description: bool, inherit_completed: bool) -> List[str]:
-	list_created_at = todo_list["createdAt"]
+def handle_list(todo_list: Dict, flatten_subtasks: bool, subtasks_as_description: bool, inherit_completed: bool,
+				ignore_completed: bool) -> List[str]:
 	str_list = []
-	for task in todo_list["tasks"]:
-		description = ""
-		# parse notes
-		if len(task["notes"]) > 0:
-			description += "Notes:\n"
-			description += "".join([note["content"] for note in task["notes"]])
-			description += "\n"
 
-		# add subtasks to desc if needed
+	for task in todo_list["tasks"]:
+		if ignore_completed and task["completed"]:
+			continue;
+
+		description = ""
+
+		# add subtasks to description if needed
 		if subtasks_as_description and len(task["subtasks"]) > 0:
-			description += "Subtasks:\n"
 			for subtask in task["subtasks"]:
 				if subtask["completed"]:
 					status = "[x]"
 				else:
 					status = "[ ]"
 				description += f"{status} {subtask['title']}\n"
+
+		# parse notes
+		if len(task["notes"]) > 0:
+			if subtasks_as_description and len(task["subtasks"]) > 0:
+				description += "\n"
+			description += "".join([note["content"] for note in task["notes"]])
+			description += "\n"
 		# replace newlines in desc with literal '\n'
 		desc_literal = description.replace('\n', '\\n')
 
@@ -56,6 +61,10 @@ COMPLETED:{parse_timestamp(task["completedAt"])}
 PERCENT-COMPLETE:100
 LAST-MODIFIED:{parse_timestamp(task["completedAt"])}
 """
+
+		# add priority based on starred flag
+		if task["starred"]:
+			parsed_str += "PRIORITY:1\n"
 
 		# due date
 		if task["dueDate"]:
@@ -90,8 +99,11 @@ PERCENT-COMPLETE:100
 LAST-MODIFIED:{parse_timestamp(task["completedAt"])}
 """
 				parsed_str += "END:VTODO"
+
 		str_list.append(parsed_str)
+
 	return str_list
+
 
 def write_ics(name: str, str_list: List[str]) -> None:
 	ics_str = """BEGIN:VCALENDAR
@@ -103,22 +115,34 @@ VERSION:2.0"""
 		# RFC 5545 3.1. Content Lines requires CLRF line endings
 		f.write(ics_str.replace('\n', '\r\n'))
 
-def main(file, flatten_subtasks, subtasks_as_description, inherit_completed) -> None:
+
+def main(file, flatten_subtasks: bool, subtasks_as_description: bool, inherit_completed: bool,
+		 ignore_completed: bool) -> None:
 	with codecs.open(file, 'r', 'utf-8-sig') as json_file:
 		data = json.load(json_file)
 		for todo_list in data:
-			parsed = handle_list(todo_list, flatten_subtasks, subtasks_as_description, inherit_completed)
+			parsed = handle_list(todo_list, flatten_subtasks, subtasks_as_description, inherit_completed,
+								 ignore_completed)
 			write_ics(todo_list["title"], parsed)
+
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Parse Wunderlist export.')
-	parser.add_argument("--subtasks-as-description", help="Put subtasks into description of parent task", action="store_true")
-	parser.add_argument("--flatten-subtasks", help="Put subtasks into their own task, with textual reference of parent task", action="store_true")
-	parser.add_argument("--inherit-completed", help="If a parent if a subtask is done, it will be considered as done as well", action="store_true")
+	parser.add_argument("--subtasks-as-description", help="Put subtasks into description of parent task",
+						action="store_true")
+	parser.add_argument("--flatten-subtasks",
+						help="Put subtasks into their own task, with textual reference of parent task",
+						action="store_true")
+	parser.add_argument("--inherit-completed",
+						help="If a parent of a subtask is done, it will be considered as done as well",
+						action="store_true")
+	parser.add_argument("--ignore-completed",
+						help="Omit completed tasks",
+						action="store_true")
 	parser.add_argument('file', metavar='f', help='The Tasks.json from the Wunderlist export')
-
 
 	args = parser.parse_args()
 	if args.inherit_completed and not args.flatten_subtasks:
 		print("Warning: --inherit-completed is ignored without enabling --flatten-subtasks.", file=sys.stderr)
-	sys.exit(main(args.file, args.flatten_subtasks, args.subtasks_as_description, args.inherit_completed))
+	sys.exit(main(args.file, args.flatten_subtasks, args.subtasks_as_description, args.inherit_completed,
+				  args.ignore_completed))
