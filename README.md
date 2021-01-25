@@ -39,7 +39,7 @@ It is recommended to call the tool with all three features regarding subtasks en
 
 `--ignore-completed`: Ignore all completed tasks (not subtasks) during conversion. based on your situation this will accelerate your import process time noticeable.
 
-All files will be put in the output folder, which has to be created manually in advance.
+All files will be put in the `output` folder, which has to be created manually in advance.
 
 ### 4. Import to Nextcloud
 

@@ -41,6 +41,8 @@ def handle_list(todo_list: Dict, flatten_subtasks: bool, subtasks_as_description
 				description += "\n"
 			description += "".join([note["content"] for note in task["notes"]])
 			description += "\n"
+		if len(task["comments"]) >0:
+			description += "".join(["".join([comment["author"]["name"], " - ", comment["createdAt"], ": ", comment["text"], "\n"]) for comment in task["comments"]])
 		# replace newlines in desc with literal '\n'
 		desc_literal = description.replace('\n', '\\n')
 
